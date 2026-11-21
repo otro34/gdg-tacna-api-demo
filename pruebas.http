@@ -1,0 +1,131 @@
+### Pruebas manuales de la API (extensión REST Client de VS Code o cliente HTTP de JetBrains)
+### Antes de empezar: npm start  →  http://localhost:3000
+### Los datos viven en memoria: al reiniciar el servidor se borran los usuarios.
+
+@baseUrl = http://localhost:3000
+@email = ana@example.com
+@password = secreta123
+
+#############################################
+# Registro
+#############################################
+
+### 1. Registro correcto → 201
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Registro duplicado → 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 3. Email inválido → 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "no-es-un-email",
+  "password": "{{password}}"
+}
+
+### 4. Sin contraseña → 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "otro@example.com"
+}
+
+#############################################
+# Login
+#############################################
+
+### 5. Login correcto → 200 { token }
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 6. Contraseña incorrecta → 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "equivocada"
+}
+
+### 7. Usuario inexistente → 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nadie@example.com",
+  "password": "{{password}}"
+}
+
+#############################################
+# Recuperación de contraseña (tarea.md, aún por implementar)
+# Ajustar los campos cuando exista la implementación.
+#############################################
+
+### 8. Solicitar enlace de recuperación → el enlace aparece en la consola del servidor
+POST {{baseUrl}}/auth/forgot
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 9. Cambiar la contraseña con el token del enlace
+# Copiar el token que imprime el servidor en la consola
+@resetToken = PEGAR_TOKEN_AQUI
+
+POST {{baseUrl}}/auth/reset
+Content-Type: application/json
+
+{
+  "token": "{{resetToken}}",
+  "password": "nueva456"
+}
+
+### 10. Login con la contraseña nueva → 200
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "nueva456"
+}
+
+### 11. Login con la contraseña anterior → 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 12. Reutilizar el mismo token → debería fallar
+POST {{baseUrl}}/auth/reset
+Content-Type: application/json
+
+{
+  "token": "{{resetToken}}",
+  "password": "otra789"
+}
